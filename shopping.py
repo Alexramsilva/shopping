@@ -7,70 +7,61 @@ Original file is located at
     https://colab.research.google.com/drive/1vN62on2IKMFTxGtru9JUn6COnTZ-Bwzg
 """
 
-import streamlit as st
 import yfinance as yf
 import pandas as pd
 import numpy as np
 
-st.title("Estrategias: 0, 1 y 2")
-
-# --- Selección del ticker ---
 TICKERS = ["BTC-USD", "GAPB.MX", "PLTR", "SPY", "GRUMAB.MX", "FMTY14.MX", "IAU"]
-ticker = st.selectbox("Selecciona un activo:", TICKERS)
 
-# --- Selección de estrategia (0, 1, 2) ---
-estrategia = st.selectbox(
-    "Selecciona la estrategia:",
-    options=[0, 1, 2]
-)
+resultados = []
 
-# --- Descargar datos ---
-df = yf.download(ticker, period="2y", interval="1d")
-df.dropna(inplace=True)
+for ticker in TICKERS:
 
-# === Medias móviles ===
-df["MA5"] = df["Close"].rolling(5).mean()
-df["MA10"] = df["Close"].rolling(10).mean()
+    df = yf.download(ticker, period="2y", interval="1d")
 
-# === Señales por cruce MA5 vs MA10 ===
-df["Signal"] = np.where(df["MA5"] > df["MA10"], 1, 0)
-df["Crossover"] = df["Signal"].diff()
+    if df.empty:
+        continue
 
-# === Modelo del resorte (Hooke) ===
-df["x"] = df["Close"] - df["MA10"]
-k = 0.001
-df["Force"] = -k * df["x"]
+    # === Medias móviles ===
+    df["MA5"] = df["Close"].rolling(5).mean()
+    df["MA10"] = df["Close"].rolling(10).mean()
 
-threshold = df["x"].std() * 1.5
-df["Exit"] = np.where(abs(df["x"]) > threshold, 1, 0)
-df["Exit_diff"] = df["Exit"].diff()
+    # === Cruce ===
+    df["Signal"] = np.where(df["MA5"] > df["MA10"], 1, 0)
+    df["Crossover"] = df["Signal"].diff()
 
-exit_dates = df[(df["Exit_diff"] == 1) & (df["MA5"] > df["MA10"])].index
-entry_dates = df[(df["Exit_diff"] == -1) & (df["MA5"] < df["MA10"])].index
+    # === Modelo del resorte ===
+    df["x"] = df["Close"] - df["MA10"]
+    k = 0.001
+    df["Force"] = -k * df["x"]
 
-# -----------------------------
-#     Estrategias: 0,1,2
-# -----------------------------
-df["Strategy"] = 0
-df.loc[entry_dates, "Strategy"] = 1
-df.loc[exit_dates, "Strategy"] = 2
+    threshold = df["x"].std() * 1.5
+    df["Exit"] = np.where(abs(df["x"]) > threshold, 1, 0)
 
-# === Último día ===
-ultimo = df.tail(1)
+    df["Exit_diff"] = df["Exit"].diff()
 
-st.subheader("Estrategia del último día:")
-st.write(f"Ticker: **{ticker}**")
-st.write(f"Estrategia generada: **{int(ultimo['Strategy'].iloc[0])}**")
+    last = df.iloc[-1]  # SOLO EL ÚLTIMO DATO
 
-# === Mostrar si coincide con la estrategia seleccionada ===
-if ultimo["Strategy"].iloc[0] == estrategia:
-    st.success(f"Coincide con estrategia {estrategia}")
-else:
-    st.warning(f"No coincide. La estrategia del día es {int(ultimo['Strategy'].iloc[0])}")
+    # === Determinar la señal final ===
+    if last["Crossover"] == 1:
+        final_signal = 1  # Comprar
+    elif last["Exit"] == 1:
+        final_signal = 2  # Vender
+    else:
+        final_signal = 0  # Nada
 
-# Mostrar datos del último día
-st.dataframe(ultimo[["Close", "MA5", "MA10", "Strategy"]])
+    resultados.append({
+        "Ticker": ticker,
+        "Fecha": last.name,
+        "Close": last["Close"],
+        "MA5": last["MA5"],
+        "MA10": last["MA10"],
+        "x": last["x"],
+        "Exit": last["Exit"],
+        "Crossover": last["Crossover"],
+        "Estrategia (1 Compra, 2 Venta, 0 Nada)": final_signal
+    })
 
-# Descargar CSV completo
-csv = df.to_csv().encode("utf-8")
-st.download_button("Descargar CSV", csv, "estrategias.csv", "text/csv")
+# === DataFrame final ===
+df_final = pd.DataFrame(resultados)
+df_final
