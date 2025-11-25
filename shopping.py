@@ -14,7 +14,30 @@ import numpy as np
 
 st.title("Señal Final: 1 Compra, 2 Venta, 0 Nada")
 
-TICKERS = ["BTC-USD", "GAPB.MX", "PLTR", "SPY", "GRUMAB.MX", "FMTY14.MX", "IAU"]
+TICKERS = ["^GSPC","BTC-USD", "NVDA", "BABA", "VISTAA.MX", "DANHOS13.MX", "EDUCA18.MX",
+"FIBRAMQ12.MX", "FIBRAPL14.MX", "FIHO12.MX", "FINN13.MX", "FMTY14.MX",
+"FPLUS16.MX", "FSHOP13.MX", "FUNO11.MX", "ACCELSAB.MX", "AGUA.MX", "ALFAA.MX",
+"ASURB.MX", "CADUA.MX", "CERAMICB.MX", "DINEB.MX", "GAPB.MX", "GCARSOA1.MX",
+"GISSAA.MX", "GMD.MX", "GMXT.MX", "HOMEX.MX", "JAVER.MX", "KUOB.MX",
+"OMAB.MX", "ORBIA.MX", "PASAB.MX", "PINFRAL.MX", "SITES1A-1.MX", "TMMA.MX",
+"TRAXIONA.MX", "VESTA.MX", "VINTE.MX", "VOLARA.MX", "ALPEKA.MX", "AUTLANB.MX",
+"CEMEXCPO.MX", "CMOCTEZ.MX", "COLLADO.MX", "CONVERA.MX", "CYDSASAA.MX",
+"GCC.MX", "GMEXICOB.MX", "ICHB.MX", "LAMOSA.MX", "MFRISCOA-1.MX",
+"PE&OLES.MX", "POCHTECB.MX", "SIMECB.MX", "TEAKCPO.MX", "VITROA.MX",
+"AC.MX", "BIMBOA.MX", "CHDRAUIB.MX", "CUERVO.MX", "CULTIBAB.MX",
+"FEMSAUBD.MX", "GIGANTE.MX", "GRUMAB.MX", "HERDEZ.MX", "KIMBERA.MX",
+"KOFUBL.MX", "LACOMERUBC.MX", "MINSAB.MX", "SORIANAB.MX", "WALMEX.MX",
+"BEVIDESB.MX", "FRAGUAB.MX", "LABB.MX", "MEDICAB.MX", "AMXB.MX",
+"AXTELCPO.MX", "CABLECPO.MX", "CTAXTELA.MX", "MEGACPO.MX", "TLEVISACPO.MX",
+"ACTINVRB.MX", "BBAJIOO.MX", "BOLSAA.MX", "CREAL.MX", "FINAMEXO.MX",
+"FINDEP.MX", "GBMO.MX", "GENTERA.MX", "GFINBURO.MX", "GFNORTEO.MX",
+"GNP.MX", "GPROFUT.MX", "INVEXA.MX", "PROCORPB.MX", "Q.MX", "RA.MX",
+"AGUILASCPO.MX", "ALSEA.MX", "CIDMEGA.MX", "CIEB.MX", "CMRB.MX",
+"HCITY.MX", "HOTEL.MX", "LIVEPOL1.MX", "NEMAKA.MX", "POSADASA.MX",
+"RLHA.MX", "SPORTS.MX", "VASCONI.MX", "ARKB", "BTCW", "BTCO", "BITB",
+"HODL", "EZBC", "FBTC", "BRRR", "GBTC", "DEFI", "IBIT", "ACWI",
+"SPY", "FAS", "SPXL", "TECL", "IAU", "NU", "MELI", "META",
+"NFLX", "IONQ", "QUBT", "QBTS", "RGTI", "PLTR", "SOFI", "HOOD"]
 
 opcion = st.selectbox("Selecciona señal:", ["Todas", "1 Compra", "2 Venta", "0 Nada"])
 
@@ -86,3 +109,16 @@ elif opcion == "0 Nada":
     df_final = df_final[df_final["Estrategia"] == 0]
 
 st.dataframe(df_final)
+
+
+# Personalización de diseño
+st.markdown("""
+<style>
+    .stApp {
+        background-color:  #5BF58E;
+    }
+    .css-1d391kg {
+        color:  #000000;
+    }
+</style>
+""", unsafe_allow_html=True)
