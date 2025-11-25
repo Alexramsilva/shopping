@@ -18,6 +18,13 @@ st.title("Señales de Compra/Venta con MA y Modelo de Resorte")
 TICKERS = ["BTC-USD", "GAPB.MX", "PLTR", "SPY", "GRUMAB.MX", "FMTY14.MX", "IAU"]
 ticker = st.selectbox("Selecciona un activo:", TICKERS)
 
+# --- Selección del tipo de señal (último día) ---
+opcion = st.selectbox(
+    "Filtrar resultado (último día):",
+    options=[0, 1, 2],
+    format_func=lambda x: "0 = Ninguno" if x == 0 else ("1 = Compra" if x == 1 else "2 = Venta")
+)
+
 # --- Descargar datos ---
 df = yf.download(ticker, period="2y", interval="1d")
 df.dropna(inplace=True)
@@ -53,17 +60,25 @@ entry_dates = df[(df["Exit_diff"] == -1) & (df["MA5"] < df["MA10"])].index
 # ================================
 
 df["TradeSignal"] = 0   # Por defecto
-
-# 1 = COMPRA en "entry_dates"
 df.loc[entry_dates, "TradeSignal"] = 1
+df.loc[exit_dates,  "TradeSignal"] = 2
 
-# 2 = VENTA en "exit_dates"
-df.loc[exit_dates, "TradeSignal"] = 2
+# ================================
+#     FILTRAR SOLO EL ÚLTIMO DÍA
+# ================================
+ultimo = df.tail(1)
 
-# Mostrar resultado
-st.subheader("Señales generadas (1 = Compra, 2 = Venta, 0 = Ninguna)")
-st.dataframe(df[["Close", "MA5", "MA10", "x", "Exit", "TradeSignal"]])
+st.subheader("Señal del último día")
+st.write(f"Ticker seleccionado: **{ticker}**")
 
-# Descargar CSV
+# Filtrar por la opción elegida
+if ultimo["TradeSignal"].iloc[0] == opcion:
+    st.success(f"Señal del día: {opcion}")
+    st.dataframe(ultimo)
+else:
+    st.warning(f"La señal del último día NO es {opcion}. Es {int(ultimo['TradeSignal'].iloc[0])}.")
+    st.dataframe(ultimo)
+
+# Descargar CSV completo
 csv = df.to_csv().encode("utf-8")
 st.download_button("Descargar CSV con Señales", csv, "senales.csv", "text/csv")
