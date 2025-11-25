@@ -16,7 +16,7 @@ st.title("Señal Final: 1 Compra, 2 Venta, 0 Nada")
 
 TICKERS = ["BTC-USD", "GAPB.MX", "PLTR", "SPY", "GRUMAB.MX", "FMTY14.MX", "IAU"]
 
-opcion = st.selectbox("Selecciona estrategia:", ["Todas", "1 Compra", "2 Venta", "0 Nada"])
+opcion = st.selectbox("Selecciona señal:", ["Todas", "1 Compra", "2 Venta", "0 Nada"])
 
 resultados = []
 
@@ -27,21 +27,26 @@ for ticker in TICKERS:
     if df.empty:
         continue
 
-    # === FIX MULTIÍNDICE ===
+    # === APLANAR COLUMNAS SI YFINANCE REGRESA MULTI-ÍNDICE ===
     if isinstance(df.columns, pd.MultiIndex):
-        df.columns = df.columns.get_level_values(1)
+        df.columns = [c[0] for c in df.columns]
 
-    # === Medias móviles ===
+    # Asegurar que Close existe
+    if "Close" not in df.columns:
+        st.write(f"Ticker {ticker}: No tiene columna Close")
+        continue
+
+    # === Medias Móviles ===
     df["MA5"] = df["Close"].rolling(5).mean()
     df["MA10"] = df["Close"].rolling(10).mean()
 
-    df = df.dropna().copy()
+    df.dropna(inplace=True)
 
-    # === Señal MA ===
-    df["Signal"] = np.where(df["MA5"] > df["MA10"], 1, 0)
+    # === Señales ===
+    df["Signal"] = (df["MA5"] > df["MA10"]).astype(int)
     df["Crossover"] = df["Signal"].diff()
 
-    # === Cálculo x SIN ERRORES ===
+    # === Cálculo x seguro ===
     df["x"] = df["Close"].to_numpy() - df["MA10"].to_numpy()
 
     # === Resorte ===
@@ -49,27 +54,25 @@ for ticker in TICKERS:
     df["Force"] = -k * df["x"]
 
     threshold = df["x"].std() * 1.5
-    df["Exit"] = np.where(abs(df["x"]) > threshold, 1, 0)
-
+    df["Exit"] = (abs(df["x"]) > threshold).astype(int)
     df["Exit_diff"] = df["Exit"].diff()
 
+    # === Último dato ===
     last = df.iloc[-1]
 
     # === Estrategia final ===
     if last["Crossover"] == 1:
-        final_signal = 1
+        estrategia = 1  # Compra
     elif last["Exit"] == 1:
-        final_signal = 2
+        estrategia = 2  # Venta
     else:
-        final_signal = 0
+        estrategia = 0
 
     resultados.append({
         "Ticker": ticker,
         "Fecha": last.name,
         "Close": last["Close"],
-        "MA5": last["MA5"],
-        "MA10": last["MA10"],
-        "Estrategia": final_signal
+        "Estrategia": estrategia
     })
 
 df_final = pd.DataFrame(resultados)
