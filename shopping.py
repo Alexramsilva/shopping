@@ -7,11 +7,17 @@ Original file is located at
     https://colab.research.google.com/drive/1vN62on2IKMFTxGtru9JUn6COnTZ-Bwzg
 """
 
+import streamlit as st
 import yfinance as yf
 import pandas as pd
 import numpy as np
 
+st.title("Señal Final: 1 Compra, 2 Venta, 0 Nada")
+
 TICKERS = ["BTC-USD", "GAPB.MX", "PLTR", "SPY", "GRUMAB.MX", "FMTY14.MX", "IAU"]
+
+# Selector para estrategia
+opcion = st.selectbox("Selecciona estrategia:", ["Todas", "1 Compra", "2 Venta", "0 Nada"])
 
 resultados = []
 
@@ -26,7 +32,10 @@ for ticker in TICKERS:
     df["MA5"] = df["Close"].rolling(5).mean()
     df["MA10"] = df["Close"].rolling(10).mean()
 
-    # === Cruce ===
+    # IMPORTANTE: eliminar NaN
+    df.dropna(inplace=True)
+
+    # === Cruces ===
     df["Signal"] = np.where(df["MA5"] > df["MA10"], 1, 0)
     df["Crossover"] = df["Signal"].diff()
 
@@ -40,15 +49,16 @@ for ticker in TICKERS:
 
     df["Exit_diff"] = df["Exit"].diff()
 
-    last = df.iloc[-1]  # SOLO EL ÚLTIMO DATO
+    # Último dato
+    last = df.iloc[-1]
 
-    # === Determinar la señal final ===
+    # === Estrategia ===
     if last["Crossover"] == 1:
-        final_signal = 1  # Comprar
+        final_signal = 1
     elif last["Exit"] == 1:
-        final_signal = 2  # Vender
+        final_signal = 2
     else:
-        final_signal = 0  # Nada
+        final_signal = 0
 
     resultados.append({
         "Ticker": ticker,
@@ -59,9 +69,18 @@ for ticker in TICKERS:
         "x": last["x"],
         "Exit": last["Exit"],
         "Crossover": last["Crossover"],
-        "Estrategia (1 Compra, 2 Venta, 0 Nada)": final_signal
+        "Estrategia": final_signal
     })
 
-# === DataFrame final ===
+# DataFrame final
 df_final = pd.DataFrame(resultados)
-df_final
+
+# Aplicar filtro del menú
+if opcion == "1 Compra":
+    df_final = df_final[df_final["Estrategia"] == 1]
+elif opcion == "2 Venta":
+    df_final = df_final[df_final["Estrategia"] == 2]
+elif opcion == "0 Nada":
+    df_final = df_final[df_final["Estrategia"] == 0]
+
+st.dataframe(df_final)
