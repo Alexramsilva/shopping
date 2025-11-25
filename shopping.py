@@ -12,17 +12,16 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 
-st.title("Señales de Compra/Venta con MA y Modelo de Resorte")
+st.title("Estrategias: 0, 1 y 2")
 
 # --- Selección del ticker ---
 TICKERS = ["BTC-USD", "GAPB.MX", "PLTR", "SPY", "GRUMAB.MX", "FMTY14.MX", "IAU"]
 ticker = st.selectbox("Selecciona un activo:", TICKERS)
 
-# --- Selección del tipo de señal (último día) ---
-opcion = st.selectbox(
-    "Filtrar resultado (último día):",
-    options=[0, 1, 2],
-    format_func=lambda x: "0 = Ninguno" if x == 0 else ("1 = Compra" if x == 1 else "2 = Venta")
+# --- Selección de estrategia (0, 1, 2) ---
+estrategia = st.selectbox(
+    "Selecciona la estrategia:",
+    options=[0, 1, 2]
 )
 
 # --- Descargar datos ---
@@ -38,47 +37,40 @@ df["Signal"] = np.where(df["MA5"] > df["MA10"], 1, 0)
 df["Crossover"] = df["Signal"].diff()
 
 # === Modelo del resorte (Hooke) ===
-close_values = df["Close"].values.flatten()
-ma10_values  = df["MA10"].values.flatten()
-
-df["x"] = close_values - ma10_values  # desplazamiento
+df["x"] = df["Close"] - df["MA10"]
 k = 0.001
 df["Force"] = -k * df["x"]
 
-# === Umbral del resorte ===
 threshold = df["x"].std() * 1.5
 df["Exit"] = np.where(abs(df["x"]) > threshold, 1, 0)
-
-# === Fechas de salida y entrada usando el resorte ===
 df["Exit_diff"] = df["Exit"].diff()
 
 exit_dates = df[(df["Exit_diff"] == 1) & (df["MA5"] > df["MA10"])].index
 entry_dates = df[(df["Exit_diff"] == -1) & (df["MA5"] < df["MA10"])].index
 
-# ================================
-#   ASIGNAR 1 = COMPRA / 2 = VENDE
-# ================================
+# -----------------------------
+#     Estrategias: 0,1,2
+# -----------------------------
+df["Strategy"] = 0
+df.loc[entry_dates, "Strategy"] = 1
+df.loc[exit_dates, "Strategy"] = 2
 
-df["TradeSignal"] = 0   # Por defecto
-df.loc[entry_dates, "TradeSignal"] = 1
-df.loc[exit_dates,  "TradeSignal"] = 2
-
-# ================================
-#     FILTRAR SOLO EL ÚLTIMO DÍA
-# ================================
+# === Último día ===
 ultimo = df.tail(1)
 
-st.subheader("Señal del último día")
-st.write(f"Ticker seleccionado: **{ticker}**")
+st.subheader("Estrategia del último día:")
+st.write(f"Ticker: **{ticker}**")
+st.write(f"Estrategia generada: **{int(ultimo['Strategy'].iloc[0])}**")
 
-# Filtrar por la opción elegida
-if ultimo["TradeSignal"].iloc[0] == opcion:
-    st.success(f"Señal del día: {opcion}")
-    st.dataframe(ultimo)
+# === Mostrar si coincide con la estrategia seleccionada ===
+if ultimo["Strategy"].iloc[0] == estrategia:
+    st.success(f"Coincide con estrategia {estrategia}")
 else:
-    st.warning(f"La señal del último día NO es {opcion}. Es {int(ultimo['TradeSignal'].iloc[0])}.")
-    st.dataframe(ultimo)
+    st.warning(f"No coincide. La estrategia del día es {int(ultimo['Strategy'].iloc[0])}")
+
+# Mostrar datos del último día
+st.dataframe(ultimo[["Close", "MA5", "MA10", "Strategy"]])
 
 # Descargar CSV completo
 csv = df.to_csv().encode("utf-8")
-st.download_button("Descargar CSV con Señales", csv, "senales.csv", "text/csv")
+st.download_button("Descargar CSV", csv, "estrategias.csv", "text/csv")
