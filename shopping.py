@@ -16,7 +16,7 @@ st.title("Señal Final: 1 Compra, 2 Venta, 0 Nada")
 
 TICKERS = ["BTC-USD", "GAPB.MX", "PLTR", "SPY", "GRUMAB.MX", "FMTY14.MX", "IAU"]
 
-# Selector para estrategia
+# Selector de estrategia
 opcion = st.selectbox("Selecciona estrategia:", ["Todas", "1 Compra", "2 Venta", "0 Nada"])
 
 resultados = []
@@ -32,15 +32,16 @@ for ticker in TICKERS:
     df["MA5"] = df["Close"].rolling(5).mean()
     df["MA10"] = df["Close"].rolling(10).mean()
 
-    # IMPORTANTE: eliminar NaN
-    df.dropna(inplace=True)
+    # Eliminar NaN
+    df = df.dropna().copy()
 
-    # === Cruces ===
+    # === Señal MA ===
     df["Signal"] = np.where(df["MA5"] > df["MA10"], 1, 0)
     df["Crossover"] = df["Signal"].diff()
 
     # === Modelo del resorte ===
-    df["x"] = df["Close"] - df["MA10"]
+    df["x"] = df["Close"].astype(float).values - df["MA10"].astype(float).values  # ← FIX DEFINITIVO
+
     k = 0.001
     df["Force"] = -k * df["x"]
 
@@ -49,10 +50,10 @@ for ticker in TICKERS:
 
     df["Exit_diff"] = df["Exit"].diff()
 
-    # Último dato
+    # Último valor disponible
     last = df.iloc[-1]
 
-    # === Estrategia ===
+    # === Estrategia final ===
     if last["Crossover"] == 1:
         final_signal = 1
     elif last["Exit"] == 1:
@@ -66,16 +67,12 @@ for ticker in TICKERS:
         "Close": last["Close"],
         "MA5": last["MA5"],
         "MA10": last["MA10"],
-        "x": last["x"],
-        "Exit": last["Exit"],
-        "Crossover": last["Crossover"],
         "Estrategia": final_signal
     })
 
-# DataFrame final
 df_final = pd.DataFrame(resultados)
 
-# Aplicar filtro del menú
+# Filtrar por estrategia seleccionada
 if opcion == "1 Compra":
     df_final = df_final[df_final["Estrategia"] == 1]
 elif opcion == "2 Venta":
