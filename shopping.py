@@ -82,15 +82,36 @@ for ticker in TICKERS:
 
     # === Último dato ===
     last = df.iloc[-1]
+    prev = df.iloc[-2]
+
+    # === Simular Exit_diff solo para el último dato ===
+    exit_diff = last["Exit"] - prev["Exit"]
+
+    # === Señales equivalentes a las de todo el DataFrame ===
+    exit_signal  = (exit_diff == 1) and (last["MA5"] > last["MA10"])
+    entry_signal = (exit_diff == -1) and (last["MA5"] < last["MA10"])
 
     # === Estrategia final ===
-    if last["Crossover"] == 1:
-        estrategia = 1  # Compra
-    elif last["Exit"] == 1:
-        estrategia = 2  # Venta
+    if last["Crossover"] == 1 or entry_signal:
+        estrategia = 1   # Compra
+    elif last["Exit"] == 1 or exit_signal:
+        estrategia = 2   # Venta
     else:
-        estrategia = 0
+        estrategia = 0   # Mantener
 
+    
+    # === Último dato ===
+    # last = df.iloc[-1]
+
+    # === Estrategia final ===
+     
+    #if last["Crossover"] == 1:
+     #   estrategia = 1  # Compra
+    #elif last["Exit"] == 1:
+      #  estrategia = 2  # Venta
+    #else:
+       # estrategia = 0
+#######################################
     resultados.append({
         "Ticker": ticker,
         "Fecha": last.name,
