@@ -92,9 +92,9 @@ for ticker in TICKERS:
     entry_signal = (exit_diff == -1) and (last["MA5"] < last["MA10"])
 
     # === Estrategia final ===
-    if last["Crossover"] == 1 or entry_signal:
+    if entry_signal:
         estrategia = 1   # Compra
-    elif last["Exit"] == 1 or exit_signal:
+    elif exit_signal:
         estrategia = 2   # Venta
     else:
         estrategia = 0   # Mantener
