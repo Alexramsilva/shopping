@@ -45,7 +45,7 @@ resultados = []
 
 for ticker in TICKERS:
 
-    df = yf.download(ticker, period="2y", interval="1d")
+    df = yf.download(ticker, period="1y", interval="1d")
 
     if df.empty:
         continue
