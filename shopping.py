@@ -12,7 +12,7 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 
-st.title("Señal Final: 1 Compra, 2 Venta, 0 Nada")
+st.title("Trade with Strategy, Grow with Confidence")
 
 TICKERS = ["^GSPC","BTC-USD", "NVDA", "BABA", "VISTAA.MX", "DANHOS13.MX", "EDUCA18.MX",
 "FIBRAMQ12.MX", "FIBRAPL14.MX", "FIHO12.MX", "FINN13.MX", "FMTY14.MX",
