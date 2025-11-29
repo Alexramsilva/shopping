@@ -11,7 +11,7 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import numpy as np
-
+st.image("shop.png", width=300)
 st.title("Trade with Strategy, Grow with Confidence")
 
 TICKERS = ["^GSPC","BTC-USD", "NVDA", "BABA", "VISTAA.MX", "DANHOS13.MX", "EDUCA18.MX",
