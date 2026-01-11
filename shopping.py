@@ -37,7 +37,7 @@ TICKERS = ["^GSPC","BTC-USD", "NVDA", "BABA", "VISTAA.MX", "DANHOS13.MX", "EDUCA
 "RLHA.MX", "SPORTS.MX", "VASCONI.MX", "ARKB", "BTCW", "BTCO", "BITB",
 "HODL", "EZBC", "FBTC", "BRRR", "GBTC", "DEFI", "IBIT", "ACWI",
 "SPY", "FAS", "SPXL", "TECL", "IAU", "NU", "MELI", "META",
-"JPM","NFLX", "IONQ", "QUBT", "QBTS", "RGTI", "PLTR", "SOFI", "HOOD", "FRES.MX", "MCHI", "INDA"]
+"JPM","NFLX", "IONQ", "QUBT", "QBTS", "RGTI", "PLTR", "SOFI", "HOOD", "FRES.MX", "MCHI", "INDA", "TSM"]
 
 opcion = st.selectbox("Selecciona señal:", ["Todas", "1 Compra", "2 Venta", "0 Nada"])
 
